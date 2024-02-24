@@ -75,7 +75,7 @@ jobs:
 
       - name: Upload WAR to S3
         run: |
-          aws s3 cp $GITHUB_WORKSPACE/web/target/*.war s3://powercloud21/
+          aws s3 cp $GITHUB_WORKSPACE/web/target/Power-Cloud-1.war s3://powercloud21/
         env:
           AWS_DEFAULT_REGION: us-east-1
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
