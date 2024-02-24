@@ -54,6 +54,7 @@ jobs:
           sudo docker run -d --name your-container-name -p 8080:8080 sadi1234/githubaction:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
 
       - name: Upload WAR to S3
+        id: upload_war_to_s3
         run: |
           response=$(aws s3 cp $GITHUB_WORKSPACE/web/target/*.war s3://sadi123/)
           echo "AWS SDK Response: $response"
@@ -64,13 +65,11 @@ jobs:
 
       - name: Deploy WAR to Tmp
         run: |
-          aws s3 cp s3://sadi123/Power-Cloud-1.war /tmp/
+          response=$(aws s3 cp s3://sadi123/Power-Cloud-1.war /tmp/)
           echo "AWS SDK Response: $response"
         env:
           AWS_DEFAULT_REGION: us-east-1
 
-
       - name: Deploy WAR to Tomcat
         run: |
-          sudo cp /tmp/sadi123/Power-Cloud-1.war /opt/tomcat/webapps
-
+          sudo cp /tmp/Power-Cloud-1.war /opt/tomcat/webapps
