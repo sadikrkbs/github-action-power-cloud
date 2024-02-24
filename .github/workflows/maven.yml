@@ -26,6 +26,9 @@ jobs:
     
       - name: find
         run: pwd
+        
+      - name: workspace 
+        run: ls -la $GITHUB_WORKSPACE/web/target
 
       - name: Set build number
         id: set_build_number
