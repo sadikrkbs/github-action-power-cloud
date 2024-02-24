@@ -1,4 +1,4 @@
-name: Docker Build, Push, and Deploy
+name: Build, Push, Deploy and S3 Deployment
 
 on:
   push:
@@ -6,8 +6,6 @@ on:
       - main
 
 jobs:
-
-
   build:
     runs-on: ubuntu-latest
     steps:
@@ -24,10 +22,10 @@ jobs:
       - name: Build with Maven
         run: mvn clean package
     
-      - name: find
+      - name: Find
         run: pwd
         
-      - name: workspace 
+      - name: Workspace 
         run: ls -la $GITHUB_WORKSPACE/web/target
 
       - name: Set build number
@@ -49,13 +47,10 @@ jobs:
           docker push sadi1234/githubaction:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
 
   deploy:
-    name: Deploy Docker Image
+    name: Deploy Docker Image and S3 Deployment
     runs-on: self-hosted
-
     needs: build
-
     steps:
-
       - name: Set build number
         id: set_build_number
         run: echo "::set-output name=BUILD_NUMBER::${GITHUB_RUN_NUMBER}"
@@ -65,7 +60,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
 
       - name: Pull Docker image from Docker Hub
         run: |
@@ -78,3 +72,11 @@ jobs:
       - name: Run Docker container
         run: |
           sudo docker run -d --name your-container-name -p 8080:8080 sadi1234/githubaction:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
+
+      - name: Upload WAR to S3
+        run: |
+          aws s3 cp $GITHUB_WORKSPACE/web/target/*.war s3://powercloud21/
+        env:
+          AWS_DEFAULT_REGION: ap-south-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
