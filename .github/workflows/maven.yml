@@ -62,7 +62,15 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+      - name: Deploy WAR to Tmp
+        run: |
+          aws s3 cp s3://sadi123/Power-Cloud-1.war /tmp/
+          echo "AWS SDK Response: $response"
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+
+
       - name: Deploy WAR to Tomcat
         run: |
-           sudo cp $GITHUB_WORKSPACE/web/target/*.war /opt/tomcat/webapps
+          sudo cp /tmp/sadi123/Power-Cloud-1.war /opt/tomcat/webapps
 
