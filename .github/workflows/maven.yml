@@ -23,6 +23,9 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean package
+    
+      - name: find
+        run: pwd
 
       - name: Set build number
         id: set_build_number
