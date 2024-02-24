@@ -60,6 +60,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+
       - name: Pull Docker image from Docker Hub
         run: |
           sudo docker pull jyotiranswain/githubaction:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
