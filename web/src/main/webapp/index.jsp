@@ -8,7 +8,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
-    <title>Welcome .</title>
+    <title>Welcome to AWS.</title>
 </head>
 <body>
   <h1>Welcome to SADi's DEVOPS PAGE : WORK</h1>
