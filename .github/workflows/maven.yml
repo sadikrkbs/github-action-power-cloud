@@ -48,6 +48,24 @@ jobs:
         run: |
           docker push sadi1234/githubaction:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
 
+      - name: Upload WAR to S3
+        run: |
+          response=$(aws s3 cp $GITHUB_WORKSPACE/web/target/*.war s3://sadi123/)
+          echo "AWS SDK Response: $response"
+          env:
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}   
+
+      - name: Copy WAR to Tmp
+        run: |
+          response=$(aws s3 cp s3://sadi123/Power-Cloud-1.war /tmp/)
+          echo "AWS SDK Response: $response"
+          env:
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}    
+
   deploy:
     name: Deploy Docker Image
     runs-on: self-hosted
@@ -78,3 +96,8 @@ jobs:
       - name: Run Docker container
         run: |
           sudo docker run -d --name your-container-name -p 8080:8080 sadi1234/githubaction:${{ steps.set_build_number.outputs.BUILD_NUMBER }} 
+
+      - name: Deploy WAR to Tomcat
+        run: |
+            sudo mkdir -p /usr/local/tomcat/webapps/
+            sudo cp $GITHUB_WORKSPACE/web/target/*.war /usr/local/tomcat/webapps/
