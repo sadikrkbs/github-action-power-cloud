@@ -83,7 +83,7 @@ jobs:
 
       - name: Upload WAR to S3
         run: |
-          response=$(aws s3 cp $GITHUB_WORKSPACE/web/target/*.war s3://sadi123/)
+          response=$(aws s3 cp $GITHUB_WORKSPACE/web/target/Power-Cloud-1.war s3://sadi123/)
           echo "AWS SDK Response: $response"
           env:
           AWS_DEFAULT_REGION: us-east-1
