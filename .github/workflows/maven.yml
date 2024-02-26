@@ -1,4 +1,4 @@
-name: Build, Push, and Deploy
+name: Docker Build, Push, and Deploy
 
 on:
   push:
@@ -7,9 +7,9 @@ on:
 
 jobs:
 
-  docker_build_push_deploy:
-    runs-on: ubuntu-latest
 
+  build:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -19,9 +19,25 @@ jobs:
         with:
           java-version: '8'
           distribution: 'temurin'
+          # cache: maven
 
       - name: Build with Maven
         run: mvn clean package
+
+      - name: Upload WAR to S3
+        run: |
+          response=$(aws s3 cp $GITHUB_WORKSPACE/web/target/*.war s3://sadi123/)
+          echo "AWS SDK Response: $response"
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: pathi bul
+        run: pwd
+
+      - name: workspace bul
+        run: ls -la $GITHUB_WORKSPACE/web/target
 
       - name: Set build number
         id: set_build_number
@@ -41,6 +57,24 @@ jobs:
         run: |
           docker push sadi1234/githubaction:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
 
+  deploy:
+    name: Deploy Docker Image
+    runs-on: self-hosted
+
+    needs: build
+
+    steps:
+
+      - name: Set build number
+        id: set_build_number
+        run: echo "::set-output name=BUILD_NUMBER::${GITHUB_RUN_NUMBER}"
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Pull Docker image from Docker Hub
         run: |
           sudo docker pull sadi1234/githubaction:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
@@ -51,29 +85,19 @@ jobs:
 
       - name: Run Docker container
         run: |
-          sudo docker run -d --name your-container-name -p 8080:8080 sadi1234/githubaction:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
+          sudo docker run -d --name your-container-name -p 8080:8080 asumancw/githubaction:${{ steps.set_build_number.outputs.BUILD_NUMBER }}
+  deploytodocker :
+    needs: deploy
+    runs-on: self-hosted
+    steps:
 
       - name: Upload WAR to S3
-        id: upload_war_to_s3
         run: |
-          response=$(aws s3 cp $GITHUB_WORKSPACE/web/target/*.war s3://sadi123/)
+          aws s3 cp s3://sadi123/Power-Cloud-1.war /tmp/
           echo "AWS SDK Response: $response"
         env:
           AWS_DEFAULT_REGION: us-east-1
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Copy WAR to Tmp
-        run: |
-          response=$(aws s3 cp s3://sadi123/Power-Cloud-1.war /tmp/)
-          echo "AWS SDK Response: $response"
-        env:
-          AWS_DEFAULT_REGION: us-east-1
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
 
       - name: Deploy WAR to Tomcat
         run: |
-          sudo mkdir -p /usr/local/tomcat/webapps/
-          sudo cp $GITHUB_WORKSPACE/web/target/*.war /usr/local/tomcat/webapps/
+          sudo cp /tmp/Power-Cloud-1.war /opt/tomcat/webapps
